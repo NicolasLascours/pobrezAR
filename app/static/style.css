@@ -177,5 +177,21 @@ button:hover {
     background-color: #0056b3; /* Color de fondo azul más oscuro al pasar el ratón */
 }
 
+/* Contenedor que centra la pirámide */
+.contenedor-piramide {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh; /* Ajusta la altura según sea necesario */
+    text-align: center;
+}
+
+#piramide {
+    max-width: 100%;
+    height: auto;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+    background-color: transparent;
+}
+
 
 

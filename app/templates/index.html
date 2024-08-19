@@ -1,14 +1,19 @@
 {% include 'header.html' %}
-<h2>El dólar hoy está en unos crocantes {{dolar['venta']}} pesos</h2>
-<div class="form-container">
-    <form action="/calculate" method="POST">
-        <div class="form-group">
-            <label for="salario">Ingresa Tu Salario:</label>
-            <input type="text" name="salario" id="salario" required>
-        </div>
-        <button type="submit">Calcular</button>
-    </form>
-</div>
 
-<a href="/calculate">Calcula cuán pobre sos</a>
+<h2>El dólar hoy está en unos crocantes {{dolar['venta']}} pesos</h2>
+    
+    <div class="form-container">
+        <form action="/calculate" method="POST">
+            <div class="form-group">
+                <label for="salario">Ingresa Tu Salario:</label>
+                <input type="text" name="salario" id="salario" required>
+            </div>
+            <button type="submit">Calcular</button>
+        </form>
+    </div>
+    
+    <a class="calculate-link" href="/calculate">Calcula cuán pobre sos</a>
+</div>
 {% include 'footer.html' %}
+
+

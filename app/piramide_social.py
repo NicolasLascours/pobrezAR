@@ -5,16 +5,16 @@ import base64
 
 def determinar_piso(valor):
     valor = float(valor)
-    if valor < 500:
-        return 1
-    elif valor < 1000:
-        return 2
-    elif valor < 2000:
-        return 3
-    elif valor < 5000:
-        return 4
+    if valor < 773000:
+        return 1  # Clase Baja
+    elif 773000 <= valor < 850000:
+        return 2  # Clase Media Baja
+    elif 850000 <= valor < 1350000:
+        return 3  # Clase Media
+    elif 1350000 <= valor < 2850000:
+        return 4  # Clase Media Alta
     else:
-        return 5
+        return 5  # Clase Alta
 
 def gradiente_color(nivel, pisos):
     # Genera un color en el gradiente de rojo a verde
@@ -22,16 +22,12 @@ def gradiente_color(nivel, pisos):
     green = (nivel - 1) / (pisos - 1)
     return (red, green, 0)  # Color en formato RGB
 
-
 def piramide(salario):
     # Asegúrate de que salario sea una cadena
     salario = str(salario)
     
-    # Eliminar el símbolo de pesos del salario
-    salario_numerico = re.sub(r'[$]', '', salario)
-    
     # Convertir a valor numérico
-    salario_numerico = float(salario_numerico)
+    salario_numerico = float(salario)
     
     # Determinar el piso del salario
     piso_salario = determinar_piso(salario_numerico)
@@ -44,7 +40,7 @@ def piramide(salario):
     # Crear una imagen en memoria
     img = io.BytesIO()
     
-    # Dibujar la pirámide con líneas más altas
+    # Dibujar la pirámide con líneas 
     plt.figure(figsize=(6, 4))  # Aumentar el tamaño de la figura
 
      # Establecer el fondo transparente
@@ -74,13 +70,19 @@ def piramide(salario):
                  arrowprops=dict(facecolor='black', shrink=0.05))
 
     # Configuraciones de la gráfica
-    plt.title("Pirámide Social de 5 Pisos")
-    plt.xlabel("Posición Horizontal")
-    plt.ylabel("Altura de los Pisos")
+    plt.title("Pirámide Social")
+    #plt.xlabel("Posición Horizontal")
+    #plt.ylabel("Altura de los Pisos")
     plt.xticks([])
-    plt.yticks([(i - 0.5) * altura_segmento for i in range(1, pisos + 1)], [f'Piso {i}' for i in range(1, pisos + 1)])
+
+    # Etiquetas personalizadas para los pisos que coinciden con los estamentos sociales
+    etiquetas_pisos = ['Clase Baja', 'Clase Media Baja', 'Clase Media', 'Clase Media Alta', 'Clase Alta']
+    plt.yticks([(i - 0.5) * altura_segmento for i in range(1, pisos + 1)], etiquetas_pisos)
+    
     plt.legend([f'Salario: ${salario_numerico}'], loc='upper right')
     
+    plt.tight_layout()
+
     # Guardar la imagen en el objeto BytesIO
     plt.savefig(img, format='png')
     plt.close()  # Cerrar la figura

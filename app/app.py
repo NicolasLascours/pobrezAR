@@ -22,7 +22,7 @@ def calculate():
     
     # Generar el gráfico con el salario
     print(dolar)
-    grafico_path = piramide(round(salario / float(dolar['venta']), 2))
+    grafico_path = piramide(round(salario)) #/ float(dolar['venta'])
     
     return render_template('calcular.html', grafico=grafico_path)
 
