@@ -1,13 +1,12 @@
 import matplotlib.pyplot as plt
-import re
 import io
 import base64
 
-def determinar_piso(salario,pisos):
-    for i in range(len(pisos)):
-        if salario < pisos[i]:
+def determinar_piso(salario,salario_pisos):
+    for i in range(len(salario_pisos)):
+        if salario < salario_pisos[i]:
             return i + 1
-    return len(pisos) + 1 
+    return len(salario_pisos)
 
 def gradiente_color(nivel, pisos):
     # Genera un color en el gradiente de rojo a verde
@@ -15,12 +14,13 @@ def gradiente_color(nivel, pisos):
     green = (nivel - 1) / (pisos - 1)
     return (red, green, 0)  # Color en formato RGB
 
-def piramide(salario,piramide_social):
+def piramide(salario,piramide_salarios):
     # Determinar el piso del salario
-    piso_salario = determinar_piso(salario,piramide_social)
-    
+    piramide_clases = ['Clase Baja','Clase Media Baja','Clase Media', 'Clase Media Alta', 'Clase Alta']
+    estrato_usuario = determinar_piso(salario,piramide_salarios)
+
     # Configuraciones de la pirámide
-    pisos = 5
+    pisos = len(piramide_clases)
     anchos_por_piso = [10, 8, 6, 4, 2]  # Ancho de cada línea para cada piso
     altura_segmento = 2  # Altura de cada segmento
 
@@ -42,7 +42,7 @@ def piramide(salario,piramide_social):
         plt.fill_between([-ancho/2, ancho/2], y_base, y_top, color=color, edgecolor='black')
 
     # Agregar el punto del salario en la pirámide
-    y_pos = (piso_salario - 0.5) * altura_segmento
+    y_pos = (estrato_usuario - 0.5) * altura_segmento
     plt.scatter(0, y_pos, color='purple', s=200, edgecolor='black')
     
     # Anotación del punto
@@ -60,11 +60,12 @@ def piramide(salario,piramide_social):
     plt.title("Pirámide Social")
     #plt.xlabel("Posición Horizontal")
     #plt.ylabel("Altura de los Pisos")
-    plt.xticks([])
-
-    # Etiquetas personalizadas para los pisos que coinciden con los estamentos sociales
-    etiquetas_pisos = ['Clase Baja: $'+str(piramide_social[0]), 'Clase Media Baja: $'+str(piramide_social[1]), 'Clase Media: $'+str(piramide_social[2]), 'Clase Media Alta: $'+str(piramide_social[3]), 'Clase Alta: >'+str(piramide_social[3])]
-    plt.yticks([(i - 0.5) * altura_segmento for i in range(1, pisos + 1)], etiquetas_pisos)
+    
+    #Etiquetas personalizadas para los pisos que coinciden con los estamentos sociales
+    etiquetas_pisos = []
+    for i in range(0,len(piramide_clases)):
+        etiquetas_pisos.append(piramide_clases[i] + ': $'+str(piramide_salarios[i]))
+    plt.yticks([(i - 1) * altura_segmento for i in range(1, pisos+1)], etiquetas_pisos)
     
     plt.legend([f'Salario: ${salario}'], loc='upper right')
     
@@ -78,4 +79,4 @@ def piramide(salario,piramide_social):
     img.seek(0)
     img_base64 = base64.b64encode(img.getvalue()).decode('utf-8')
     
-    return img_base64
+    return img_base64, piramide_clases[estrato_usuario-1]
