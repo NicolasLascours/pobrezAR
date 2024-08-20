@@ -3,18 +3,11 @@ import re
 import io
 import base64
 
-def determinar_piso(valor):
-    valor = float(valor)
-    if valor < 773000:
-        return 1  # Clase Baja
-    elif 773000 <= valor < 850000:
-        return 2  # Clase Media Baja
-    elif 850000 <= valor < 1350000:
-        return 3  # Clase Media
-    elif 1350000 <= valor < 2850000:
-        return 4  # Clase Media Alta
-    else:
-        return 5  # Clase Alta
+def determinar_piso(salario,pisos):
+    for i in range(len(pisos)):
+        if salario < pisos[i]:
+            return i + 1
+    return len(pisos) + 1 
 
 def gradiente_color(nivel, pisos):
     # Genera un color en el gradiente de rojo a verde
@@ -22,15 +15,9 @@ def gradiente_color(nivel, pisos):
     green = (nivel - 1) / (pisos - 1)
     return (red, green, 0)  # Color en formato RGB
 
-def piramide(salario):
-    # Asegúrate de que salario sea una cadena
-    salario = str(salario)
-    
-    # Convertir a valor numérico
-    salario_numerico = float(salario)
-    
+def piramide(salario,piramide_social):
     # Determinar el piso del salario
-    piso_salario = determinar_piso(salario_numerico)
+    piso_salario = determinar_piso(salario,piramide_social)
     
     # Configuraciones de la pirámide
     pisos = 5
@@ -41,7 +28,7 @@ def piramide(salario):
     img = io.BytesIO()
     
     # Dibujar la pirámide con líneas 
-    plt.figure(figsize=(6, 4))  # Aumentar el tamaño de la figura
+    plt.figure(figsize=(6, 4))  
 
      # Establecer el fondo transparente
     plt.gca().patch.set_facecolor('none')
@@ -76,10 +63,10 @@ def piramide(salario):
     plt.xticks([])
 
     # Etiquetas personalizadas para los pisos que coinciden con los estamentos sociales
-    etiquetas_pisos = ['Clase Baja', 'Clase Media Baja', 'Clase Media', 'Clase Media Alta', 'Clase Alta']
+    etiquetas_pisos = ['Clase Baja: $'+str(piramide_social[0]), 'Clase Media Baja: $'+str(piramide_social[1]), 'Clase Media: $'+str(piramide_social[2]), 'Clase Media Alta: $'+str(piramide_social[3]), 'Clase Alta: >'+str(piramide_social[3])]
     plt.yticks([(i - 0.5) * altura_segmento for i in range(1, pisos + 1)], etiquetas_pisos)
     
-    plt.legend([f'Salario: ${salario_numerico}'], loc='upper right')
+    plt.legend([f'Salario: ${salario}'], loc='upper right')
     
     plt.tight_layout()
 

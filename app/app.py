@@ -14,15 +14,15 @@ def index():
 @app.route('/calculate', methods=['POST'])
 def calculate():
     salario = request.form.get('salario')  # Captura el valor del salario del formulario
-    # Convertir el valor a tipo float, eliminando cualquier símbolo de moneda
     try:
+        # Convertir el valor a tipo float, eliminando cualquier símbolo de moneda
         salario = float(salario.replace('$', '').replace(',', '').strip())
     except ValueError:
         salario = 0.0  # Valor por defecto en caso de error en la conversión
+    piramide_social = [773000,850000,1350000,2850000]
     
     # Generar el gráfico con el salario
-    print(dolar)
-    grafico_path = piramide(round(salario)) #/ float(dolar['venta'])
+    grafico_path = piramide(round(salario),piramide_social) #/ float(dolar['venta'])
     
     return render_template('calcular.html', grafico=grafico_path)
 
