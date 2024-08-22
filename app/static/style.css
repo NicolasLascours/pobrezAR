@@ -192,3 +192,45 @@ button:hover {
     box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
     background-color: transparent;
 }
+
+/* Slider Styles */
+.slider-container {
+    overflow: hidden;
+    width: 100%; /* Ocupa todo el ancho de la página */
+    margin: 20px 0;
+    background-color: #4a4a4a; /* Fondo oscuro */
+    padding: 10px 0;
+}
+
+.slider {
+    display: flex;
+    animation: slide 10s linear infinite; /* Animación para deslizar el texto */
+    justify-content: center;
+    align-items: center;
+    color: #f0f0f0; /* Texto gris claro */
+    font-size: 1.5rem;
+}
+
+/* Keyframes para deslizar el texto */
+@keyframes slide {
+    0% {
+        transform: translateX(100%);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+/* Titilar valor del dólar */
+.dollar-flash {
+    animation: flash 1s infinite;
+}
+
+@keyframes flash {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+}
