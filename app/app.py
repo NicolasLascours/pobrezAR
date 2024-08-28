@@ -26,6 +26,9 @@ def calculate():
     
     return render_template('calcular.html', grafico=grafico_path, piso=piso,dolar=dolar)
 
+@app.route("/about")
+def about():       
+    return render_template('about.html',dolar=dolar)
 
 if __name__ == '__main__':
     app.run(debug=True)
