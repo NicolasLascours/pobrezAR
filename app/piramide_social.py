@@ -1,84 +1,109 @@
-import matplotlib.pyplot as plt
-import io
-import base64
-
-def determinar_piso(salario, salario_pisos):
-    for i in range(len(salario_pisos) - 1):
-        if salario_pisos[i] <= salario < salario_pisos[i + 1]: #verifica si el salario cae entre dos valores consecutivos
-            return i + 1
-    return len(salario_pisos)
-
+import dash
+from dash import dcc, html
+import plotly.graph_objs as go
 
 def gradiente_color(nivel, pisos):
-    # Genera un color en el gradiente de rojo a verde
-    red = (pisos - nivel) / (pisos - 1)
-    green = (nivel - 1) / (pisos - 1)
-    return (red, green, 0)  # Color en formato RGB
+    red = max(0, min(255, int((pisos - nivel) / (pisos - 1) * 255)))
+    green = max(0, min(255, int((nivel - 1) / (pisos - 1) * 255)))
+    return f'rgb({red}, {green}, 0)'
 
-def piramide(salario, piramide_salarios):
-    # Determinar el piso del salario
-    piramide_clases = ['Clase Baja', 'Clase Media Baja', 'Clase Media', 'Clase Media Alta', 'Clase Alta']
-    estrato_usuario = determinar_piso(salario, piramide_salarios)
-
-    # Configuraciones de la pirámide
-    pisos = len(piramide_clases)
-    anchos_por_piso = [10, 8, 6, 4, 2]  # Ancho de cada línea para cada piso
-    altura_segmento = 2  # Altura de cada segmento
-
-    # Crear una imagen en memoria
-    img = io.BytesIO()
+def create_dash_app(flask_app, clases_pisos, cba, cbt):
+    dash_app = dash.Dash(
+        server=flask_app,
+        routes_pathname_prefix='/dash/',
+        external_stylesheets=['https://codepen.io/chriddyp/pen/bWLwgP.css']
+    )
     
-    # Dibujar la pirámide con líneas 
-    plt.figure(figsize=(6, 4))  
+    # Layout de Dash
+    dash_app.layout = html.Div([
+    html.Div([
+        html.Label('Salario en múltiplo de 10000    :'),
+        dcc.Input(id='salario-input', type='number', value=0, step=10000),
+    ], style={'display': 'inline-block'}),  # Espaciado entre los elementos
+    html.Div([
+        html.Label('Cantidad de Adultos:'),
+        dcc.Input(id='adultos-input', type='number', value=1, step=1)
+    ], style={'display': 'inline-block'}),
+    html.Div([
+        html.Label('Cantidad de Niños:'),
+        dcc.Input(id='ninos-input', type='number', value=0, step=1)
+    ], style={'display': 'inline-block'}),
+    html.Button('Calcular', id='submit-val', n_clicks=0, style={'display': 'inline-block'}),
+    html.Div([
+        dcc.Graph(id='piramide-grafico'),
+        html.Div(id='output-container')])
+    ])
 
-    # Establecer el fondo transparente
-    plt.gca().patch.set_facecolor('none')
-    plt.gcf().patch.set_facecolor('none')
-    
-    # Dibujar la estructura de la pirámide con líneas más altas
-    for piso, ancho in enumerate(anchos_por_piso, start=1):
-        y_base = (piso - 1) * altura_segmento  # Base del segmento
-        y_top = piso * altura_segmento         # Top del segmento
-        color = gradiente_color(piso, pisos)   # Obtener el color del gradiente
-        plt.fill_between([-ancho/2, ancho/2], y_base, y_top, color=color, edgecolor='black')
+    # Callback de Dash
+    @dash_app.callback(
+        [dash.dependencies.Output('piramide-grafico', 'figure'),
+         dash.dependencies.Output('output-container', 'children')],
+        [dash.dependencies.Input('submit-val', 'n_clicks')],
+        [dash.dependencies.State('salario-input', 'value'),
+         dash.dependencies.State('adultos-input', 'value'),
+         dash.dependencies.State('ninos-input', 'value')]
+    )
+    def update_figure(n_clicks, selected_salario,adultos,ninos):
+        # Definir los límites de la pirámide
+        anchos_por_piso = [10, 8, 6, 4, 2, 0]
+        piramide_familiar = [
+            0,  # Base de la pirámide
+            cba * (adultos + ninos * 0.68),
+            cbt * (adultos  + ninos * 0.68),
+            2.5 * cbt * (adultos + ninos * 0.68), 
+            3.5 * cbt * (adultos + ninos * 0.68),
+            4.5 * cbt * (adultos + ninos * 0.68)
+        ]
+        
+         # Calcular la posición del usuario en la recta
+        for i in range(1, len(piramide_familiar)):
+            if selected_salario <= piramide_familiar[i]:
+                # Interpolación lineal entre los puntos de la recta definidos por piramide[i-1] y piramide[i]
+                y_usuario = i - 1 + (selected_salario - piramide_familiar[i-1]) / (piramide_familiar[i] - piramide_familiar[i-1])
+                break
+        else:
+            y_usuario = len(piramide_familiar) - 1  # En caso de que el salario exceda el máximo en la pirámide
 
-    # Agregar el punto del salario en la pirámide
-    y_pos = (estrato_usuario - 0.5) * altura_segmento
-    plt.scatter(0, y_pos, color='purple', s=200, edgecolor='black')
-    
-    # Anotación del punto
-    plt.annotate('Usted está aquí', 
-                 xy=(0, y_pos), 
-                 xytext=(0, y_pos + altura_segmento / 2), 
-                 textcoords='offset points',
-                 ha='center', 
-                 va='bottom',
-                 fontsize=12, 
-                 color='black', 
-                 arrowprops=dict(facecolor='black', shrink=0.05))
+        figuras = []
 
-    # Configuraciones de la gráfica
-    plt.title("Pirámide Social")
+        # Dibujar los pisos de la pirámide
+        for i in range(len(clases_pisos)):
+            figuras.append(go.Scatter(
+                x=[-anchos_por_piso[i] / 2, anchos_por_piso[i] / 2],
+                y=[i, i],
+                mode='lines',
+                line=dict(width=0, color=str(gradiente_color(i, len(clases_pisos)))),
+                fill='tonexty',
+                showlegend=False
+            ))
 
-    # Eliminar etiquetas del eje X
-    plt.xticks([])
+        # Agregar el marcador para la ubicación del usuario
+        figuras.append(go.Scatter(
+            x=[0],
+            y=[y_usuario],
+            mode='markers+text',
+            marker=dict(size=15, color='purple'),
+            text=['Tu ubicación en la pirámide'],  
+            textposition="top center",
+            name='Acá estás vos y tu familia',
+             
+        ))
 
-    # Etiquetas personalizadas para los pisos que coinciden con los estamentos sociales
-    etiquetas_pisos = []
-    for i in range(0, len(piramide_clases)):
-        etiquetas_pisos.append(piramide_clases[i] + ': $' + str(piramide_salarios[i]))
-    plt.yticks([(i - 1) * altura_segmento for i in range(1, pisos + 1)], etiquetas_pisos)
-    
-    #plt.legend([f'Salario: ${salario}'], loc='upper right')
-    
-    plt.tight_layout()
+        # Actualizar los ticks del eje y con los valores calculados
+        layout = go.Layout(
+            xaxis=dict(visible=False),
+            yaxis=dict(
+                tickvals=list(range(len(clases_pisos))),
+                ticktext=[f"{clases_pisos[i]}, mínimo de ${piramide_familiar[i]:.2f}" for i in range(len(clases_pisos))],
+                range=[-0.5, len(clases_pisos)],
+            ),
+            margin=dict(l=50, r=50, t=50, b=50),
+            height=400,
+        )
 
-    # Guardar la imagen en el objeto BytesIO
-    plt.savefig(img, format='png')
-    plt.close()  # Cerrar la figura
-    
-    # Obtener la imagen en formato base64
-    img.seek(0)
-    img_base64 = base64.b64encode(img.getvalue()).decode('utf-8')
-    
-    return img_base64, piramide_clases[estrato_usuario-1]
+        figure = go.Figure(data=figuras, layout=layout)
+        salida = f"Con un salario de ${selected_salario}, vos y tu familia están sobre la '{clases_pisos[int(y_usuario)]}'."
+        return figure, salida
+
+    return dash_app
+

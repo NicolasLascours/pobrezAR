@@ -1,17 +1,8 @@
 {% include 'header.html' %}
 
-<p>¿Pobre? ¿Clase media? ¿Qué soy, qué somos? Ingresá tu salario y averigualo</>
-
-    <div class="form-container">
-        <form action="/calculate" method="POST">
-            <div class="form-group">
-                <label for="salario">Ingresa Tu Salario:</label>
-                <input type="text" name="salario" id="salario" required>
-            </div>
-            <button type="submit">Calcular</button>
-        </form>
+    <h2>Pirámide social individual y familiar</h2>
+    <div>
+        <iframe src="/dash/" class="responsive-iframe" frameborder="0"></iframe>
     </div>
     
 {% include 'footer.html' %}
-
-
