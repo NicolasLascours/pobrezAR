@@ -7,6 +7,28 @@ def gradiente_color(nivel, pisos):
     green = max(0, min(255, int((nivel - 1) / (pisos - 1) * 255)))
     return f'rgb({red}, {green}, 0)'
 
+def armar_piramide(adultos,ninos,alquiler,cba,cbt):  
+    return [alquiler,  # Base de la pirámide
+            alquiler + (cba * (adultos + ninos * 0.68)),
+            alquiler + (cbt * (adultos  + ninos * 0.68)),
+            alquiler + (2.5 * cbt * (adultos + ninos * 0.68)), 
+            alquiler + (3.5 * cbt * (adultos + ninos * 0.68)),
+            alquiler + (4.5 * cbt * (adultos + ninos * 0.68))        ]
+
+def get_image_for_position(y_usuario):
+    if y_usuario < 1:
+        return '/static/img/bart.png'
+    elif y_usuario < 2:
+        return '/static/img/perrito.jpeg'
+    elif y_usuario < 3:
+        return '/static/img/elsa.jpeg'
+    elif y_usuario < 4:
+        return '/static/img/fry.jpeg'
+    elif y_usuario < 5:
+        return '/static/img/platudo.png'
+    elif y_usuario < 6:
+        return '/static/img/ricky.jpg'
+
 def create_dash_app(flask_app, clases_pisos, cba, cbt):
     dash_app = dash.Dash(
         server=flask_app,
@@ -28,10 +50,13 @@ def create_dash_app(flask_app, clases_pisos, cba, cbt):
         html.Label('Cantidad de Niños:'),
         dcc.Input(id='ninos-input', type='number', value=0, step=1)
     ], style={'display': 'inline-block'}),
-    html.Button('Calcular', id='submit-val', n_clicks=0, style={'display': 'inline-block'}),
     html.Div([
-        dcc.Graph(id='piramide-grafico'),
-        html.Div(id='output-container')])
+        html.Label('Monto Alquiler o Crédito:'),
+        dcc.Input(id='alquiler-input', type='number', value=0, step=10000)
+    ], style={'display': 'inline-block'}),
+    html.Button('Calcular', id='submit-val', n_clicks=0, style={'display': 'inline-block'}),
+    dcc.Graph(id='piramide-grafico'),
+    html.Div(id='output-container', style={'textAlign': 'center'})  # Contenedor para la imagen
     ])
 
     # Callback de Dash
@@ -41,19 +66,13 @@ def create_dash_app(flask_app, clases_pisos, cba, cbt):
         [dash.dependencies.Input('submit-val', 'n_clicks')],
         [dash.dependencies.State('salario-input', 'value'),
          dash.dependencies.State('adultos-input', 'value'),
-         dash.dependencies.State('ninos-input', 'value')]
+         dash.dependencies.State('ninos-input', 'value'),
+         dash.dependencies.State('alquiler-input', 'value')]
     )
-    def update_figure(n_clicks, selected_salario,adultos,ninos):
+    def update_figure(n_clicks, selected_salario,adultos,ninos,alquiler):
         # Definir los límites de la pirámide
         anchos_por_piso = [10, 8, 6, 4, 2, 0]
-        piramide_familiar = [
-            0,  # Base de la pirámide
-            cba * (adultos + ninos * 0.68),
-            cbt * (adultos  + ninos * 0.68),
-            2.5 * cbt * (adultos + ninos * 0.68), 
-            3.5 * cbt * (adultos + ninos * 0.68),
-            4.5 * cbt * (adultos + ninos * 0.68)
-        ]
+        piramide_familiar = armar_piramide (adultos,ninos,alquiler,cba,cbt)
         
          # Calcular la posición del usuario en la recta
         for i in range(1, len(piramide_familiar)):
@@ -88,22 +107,31 @@ def create_dash_app(flask_app, clases_pisos, cba, cbt):
             name='Acá estás vos y tu familia',
              
         ))
+        
+        
 
         # Actualizar los ticks del eje y con los valores calculados
         layout = go.Layout(
             xaxis=dict(visible=False),
             yaxis=dict(
                 tickvals=list(range(len(clases_pisos))),
-                ticktext=[f"{clases_pisos[i]}, mínimo de ${piramide_familiar[i]:.2f}" for i in range(len(clases_pisos))],
+                #ticktext=[f"{clases_pisos[i]}, mínimo de ${piramide_familiar[i]:.2f}" for i in range(len(clases_pisos))],
+                ticktext=[f"{clases_pisos[i]}" for i in range(len(clases_pisos))],
                 range=[-0.5, len(clases_pisos)],
             ),
-            margin=dict(l=50, r=50, t=50, b=50),
+            margin=dict(l=50, r=50, t=0, b=0),
             height=400,
         )
 
         figure = go.Figure(data=figuras, layout=layout)
-        salida = f"Con un salario de ${selected_salario}, vos y tu familia están sobre la '{clases_pisos[int(y_usuario)]}'."
-        return figure, salida
+        salida = f"Con un salario de ${selected_salario}, vos y tu familia son .... '{clases_pisos[int(y_usuario)]}'."
+        
+      # Agregar la imagen a la salida si el botón ha sido presionado
+        imagen_html = html.Img(src=get_image_for_position(y_usuario), style={'width': '20em', 'height': '20em'}) if n_clicks > 0 else ''
+
+        output = html.Div([html.P(salida), imagen_html])
+
+        return figure, output
 
     return dash_app
 

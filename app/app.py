@@ -3,9 +3,10 @@ from piramide_social import create_dash_app
 from consulta_dolarhoy import get_usd_blue
 
 app = Flask(__name__)
+
 dolar = get_usd_blue("https://dolarhoy.com/")
 # Integrar Dash en Flask
-piramide_clases = ['Base','Línea de Indigencia', 'Línea de Pobreza', 'Clase Media Baja','Clase Media','Clase Media Alta']
+piramide_clases = ['Más abajo no hay','Indigente', 'De acá para arriba ya no sos pobre', 'Clase Media POBREEEE!!!','Ahora sí... Clase Media','Más que esto no esperes']
 cba = 131294
 cbt = 291472
 dash_app = create_dash_app(app,piramide_clases,cba,cbt)
